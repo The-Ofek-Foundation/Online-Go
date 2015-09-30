@@ -11,9 +11,51 @@ var goban = document.getElementById("board");
 var brush = goban.getContext("2d");
 
 function log_array(arr) {
-  for (i = 0; i < arr.length; i++) {
+  for (i = 0; i < arr.length; i++)
     console.log(arr[i]);
-  }
+}
+
+function equal(board1, board2)	{
+  for (i = 0; i < board.length; i++)
+    for (a = 0; a < board[i].length; a++)
+      if (board1[i][a] != board2[i][a])
+          return false;
+  return true;
+}
+
+function set(goban, from)	{
+  for (i = 0; i < goban.length; i++)
+    for (a = 0; a < goban[i].length; a++)
+      goban[i][a] = from[i][a];
+}
+
+function save_captures(index, b, w)	{
+  captures[index][0] = b;
+  captures[index][1] = w;
+}
+function save_seconds(index, times)	{
+  seconds[index] = times;
+}
+
+function save_board(index, goban) {
+  for (i = 0; i < goban.length; i++)
+    for (a = 0; a < goban[i].length; a++)
+      boards[index][i][a] = goban[i][a];
+  save_captures(index, bcaptures, wcaptures);
+  save_seconds(index, seconds);
+}
+
+function get_captures(index)	{
+  bcaptures = captures[index][0];
+  wcaptures = captures[index][1];
+}
+
+function get_seconds(index)	{
+  second = seconds[index];
+}
+
+function get_board(index)	{
+    return boards[index];
 }
 
 function draw_piece(x, y) {
@@ -59,6 +101,9 @@ function new_game(length) {
   boardon = 0;
   boards = new Array(size * size * 2);
   captures = new Array(size * size * 2);
+  seconds = new Array(size * size * 2);
+  for (i = 0; i < seconds.length; i++)
+    seconds[i] = new Array(2);
   for (i = 0; i < boards.length; i++) {
     boards[i] = new Array(size);
     captures[i] = new Array(2);
@@ -74,6 +119,7 @@ function new_game(length) {
   wcaptures = bcaptures = 0;
   boardon++;
   ss = gowidth / size;
+  draw_board();
 }
 
 $(document).ready(function() {
@@ -83,17 +129,17 @@ $(document).ready(function() {
   
   if (docwidth * 0.8 > docheight) {
     gowidth = docheight;
-    $('#board').css('left', (docwidth * 0.8 - docheight)/2);
+    $('#board').css('left', (docwidth * 0.8 - docheight)/3);
   }
   else gowidth = docwidth * 0.8;
   
   $('#board').width(gowidth).height(gowidth).css('top', (docheight - gowidth)/2);
+  $('#settings-panel').width(docwidth - $('#board').outerWidth() - parseInt($('#board').css('left'), 10));
   
   goban.setAttribute('width', gowidth);
   goban.setAttribute('height', gowidth);
   
   new_game(19);
-  draw_board();
 });
 
 function check_dead_helper(dead, kill_char)	{
@@ -110,19 +156,19 @@ function check_dead_helper(dead, kill_char)	{
             a -= 2;
         }
         else {
-          if (i > 0 && board[i-1][a] == kill_char) {
+          if (i > 0 && board[i-1][a] == kill_char && dead[i-1][a] != -1) {
             dead[i-1][a] = -1;
             changed = true;
           }
-          if (i < size - 1 && board[i+1][a] == kill_char) {
+          if (i < size - 1 && board[i+1][a] == kill_char && dead[i+1][a] != -1) {
             dead[i+1][a] = -1;
             changed = true;
           }
-          if (a > 0 && board[i][a-1] == kill_char) {
+          if (a > 0 && board[i][a-1] == kill_char && dead[i][a-1] != -1) {
             dead[i][a-1] = -1;
             changed = true;
           }
-          if (a < size - 1 && board[i][a+1] == kill_char) {
+          if (a < size - 1 && board[i][a+1] == kill_char && dead[i][a+1] != -1) {
             dead[i][a+1] = -1;
             changed = true;
           }
@@ -172,6 +218,7 @@ function check_dead(turn, x, y)	{
 function get_coord(loc) {
   return parseInt(loc / ss, 10);
 }
+
 function can_place_here(x, y) {
   if (board[x][y] != ' ') {
     alert("Illegal to place on stone!");
@@ -191,7 +238,27 @@ $('#board').mousedown(function(e) {
   check_dead(!blackturn, x, y);
   check_dead(blackturn, x, y);
   
+  if (boardon > 3)
+    if (equal(board, get_board(boardon-2))) {
+      set(board, get_board(boardon-1));
+      get_captures(boardon-1);
+      get_seconds(boardon-1);
+      alert("Illegal KO move!");
+      return;
+    }
+  save_board(boardon, board);
+  
   boardon++;
   blackturn = !blackturn;
   draw_board();
+});
+
+$('#form-new-game').submit(function() {
+  new_game(parseInt($('input[name="board-size"]').val(), 10));
+  $('#new-game-menu').animate({opacity: 0}, "slow");
+  return false;
+});
+
+$('#btn-new-game').click(function() {
+  $('#new-game-menu').animate({opacity: 1}, "slow");
 });
