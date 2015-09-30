@@ -5,43 +5,46 @@
   width: 50px;
   height: 50px;
 }
+
 #settings-panel {
   position: absolute;
   right: 0px;
   top: 0px;
   height: 100%;
 }
+
 #btn-new-game {
   display: block;
   margin: 20px auto;
   width: auto;
-  font-size: 40px;
+  font-size: 40px; 
   color: white;
   background-color: blue;
   border: none;
   border-radius: 10px;
 }
+
 #new-game-menu {
   position: absolute;
   visibility: visible;
   background-color: blue;
-  z-index: 1;
+  z-index: -1;
   width: 30%;
   left: 35%;
   height: 85%;
   top: 7.5%;
   padding: 30px;
   color: white;
+  h1 {
+    margin-top: 5px;
+  }
   -moz-box-shadow: 0 0 500px black;
   -webkit-box-shadow: 0 0 500px black;
   box-shadow: 0 0 500px black;
   border-radius: 15px;
   opacity: 0;
 }
-#new-game-menu h1 {
-  margin-top: 5px;
-}
-html,
-button {
+
+html, button {
   font-family: 'Open Sans', sans-serif;
 }
