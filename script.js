@@ -255,10 +255,13 @@ $('#board').mousedown(function(e) {
 
 $('#form-new-game').submit(function() {
   new_game(parseInt($('input[name="board-size"]').val(), 10));
-  $('#new-game-menu').animate({opacity: 0}, "slow");
+  $('#new-game-menu').animate({opacity: 0}, "slow", function() {
+    $(this).css('z-index', -1);
+  });
   return false;
 });
 
 $('#btn-new-game').click(function() {
-  $('#new-game-menu').animate({opacity: 1}, "slow");
+  $('#new-game-menu').animate({opacity: 1}, "slow").css('z-index', 1);
 });
+  
