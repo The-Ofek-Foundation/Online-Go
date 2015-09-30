@@ -10,6 +10,12 @@ var ss; // square size
 var goban = document.getElementById("board");
 var brush = goban.getContext("2d");
 
+function log_array(arr) {
+  for (i = 0; i < arr.length; i++) {
+    console.log(arr[i]);
+  }
+}
+
 function draw_piece(x, y) {
   switch (board[x][y])	{
     case 'B': brush.fillStyle = "black"; break;
@@ -23,7 +29,13 @@ function draw_piece(x, y) {
   brush.stroke();
 }
 
+function clear_canvas() {
+  brush.clearRect(0, 0, gowidth, gowidth);
+}
+
 function draw_board() {
+  clear_canvas();
+  
   brush.beginPath();
   for (i = 1; i <= board.length; i++) {
     brush.moveTo(i * ss - ss / 2, 0);
@@ -84,10 +96,87 @@ $(document).ready(function() {
   draw_board();
 });
 
+function check_dead_helper(dead, kill_char)	{
+  var changed = false;
+  for (i = 0; i < board.length; i++)
+    for (a = 0; a < board[i].length; a++)
+      if (dead[i][a] == -1) {
+        if ((i > 0 && dead[i-1][a] === 0) || (i < size - 1 && dead[i+1][a] === 0) || (a > 0 && dead[i][a-1] === 0) || (a < size - 1 && dead[i][a+1] === 0)) {
+          dead[i][a] = 0;
+          changed = true;
+          if (i > 0)
+            i -= 1;
+          if (a > 0)
+            a -= 2;
+        }
+        else {
+          if (i > 0 && board[i-1][a] == kill_char) {
+            dead[i-1][a] = -1;
+            changed = true;
+          }
+          if (i < size - 1 && board[i+1][a] == kill_char) {
+            dead[i+1][a] = -1;
+            changed = true;
+          }
+          if (a > 0 && board[i][a-1] == kill_char) {
+            dead[i][a-1] = -1;
+            changed = true;
+          }
+          if (a < size - 1 && board[i][a+1] == kill_char) {
+            dead[i][a+1] = -1;
+            changed = true;
+          }
+        }
+      }
+            
+  return changed;
+}
+
+function check_dead(turn, x, y)	{
+  var kill_char = turn ? 'B':'W';
+  var dead = new Array(size);
+  for (i = 0; i < dead.length; i++) {
+    dead[i] = new Array(size);
+    for (a = 0; a < dead[i].length; a++) {
+      if (board[i][a] == ' ')
+        dead[i][a] = 0;
+      else dead[i][a] = 1;
+    }
+  }
+
+  if (board[x][y] == kill_char)
+    dead[x][y] = -1;
+  else {
+    if (x > 0 && board[x-1][y] == kill_char)
+      dead[x-1][y] = -1;
+    if (x < size - 1 && board[x+1][y] == kill_char)
+      dead[x+1][y] = -1;
+    if (y > 0 && board[x][y-1] == kill_char)
+      dead[x][y-1] = -1;
+    if (y < size - 1 && board[x][y+1] == kill_char)
+      dead[x][y+1] = -1;
+  }
+        
+  while (check_dead_helper(dead, kill_char));
+    
+  for (i = 0; i < dead.length; i++)
+    for (a = 0; a < dead[i].length; a++)
+      if (dead[i][a] == -1)	{
+        board[i][a] = ' ';
+        if (turn) wcaptures++;
+        else bcaptures++;
+      }
+}
+
+
 function get_coord(loc) {
   return parseInt(loc / ss, 10);
 }
 function can_place_here(x, y) {
+  if (board[x][y] != ' ') {
+    alert("Illegal to place on stone!");
+    return false;
+  }
   return true;
 }
 
@@ -99,7 +188,8 @@ $('#board').mousedown(function(e) {
     board[x][y] = blackturn ? 'B':'W';
   else return;
   
-  
+  check_dead(!blackturn, x, y);
+  check_dead(blackturn, x, y);
   
   boardon++;
   blackturn = !blackturn;
