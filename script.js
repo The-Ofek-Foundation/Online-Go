@@ -65,7 +65,7 @@ function draw_piece(x, y) {
     default: return;
   }
   brush.beginPath();
-  brush.arc(x * ss + ss / 2, y * ss + ss / 2, ss * 0.3, 0, Math.PI * 2);
+  brush.arc(x * ss + ss / 2, y * ss + ss / 2, ss * 0.4, 0, Math.PI * 2);
   brush.fill();
   brush.strokeStyle = "black";
   brush.stroke();
@@ -117,6 +117,8 @@ function new_game(length) {
       board[i][a] = ' ';
   }
   wcaptures = bcaptures = 0;
+  $('#black-stone').text(bcaptures);
+  $('#white-stone').text(wcaptures);
   boardon++;
   ss = gowidth / size;
   draw_board();
@@ -243,11 +245,13 @@ $('#board').mousedown(function(e) {
       set(board, get_board(boardon-1));
       get_captures(boardon-1);
       get_seconds(boardon-1);
-      alert("Illegal KO move!");
+      alert("Illegal ko move!");
       return;
     }
-  save_board(boardon, board);
   
+  save_board(boardon, board);
+  $('#black-stone').text(bcaptures);
+  $('#white-stone').text(wcaptures);
   boardon++;
   blackturn = !blackturn;
   draw_board();
