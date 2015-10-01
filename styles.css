@@ -21,6 +21,28 @@
   border: none;
   border-radius: 10px;
 }
+#btn-undo {
+  display: inline-block;
+  color: white;
+  background-color: red;
+  border: none;
+  border-radius: 10px;
+  width: auto;
+  font-size: 40px;
+  margin: 30px;
+  float: left;
+}
+#btn-redo {
+  display: inline-block;
+  color: white;
+  background-color: green;
+  border: none;
+  border-radius: 10px;
+  width: auto;
+  font-size: 40px;
+  margin: 30px;
+  float: right;
+}
 .stone-count {
   width: 100px;
   margin-left: 20px;
