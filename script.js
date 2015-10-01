@@ -125,6 +125,7 @@ function new_game(length) {
   wcaptures = bcaptures = 0;
   $('#black-stone').text(bcaptures);
   $('#white-stone').text(wcaptures);
+  save_board(boardon, board);
   boardon++;
   max_turn = boardon;
   ss = gowidth / size;
@@ -308,8 +309,6 @@ $('#btn-undo').click(function() {
     alert("No moves to undo");
     return;
   }
-  else if (boardon == 2)
-    new_game(size);
   else {
     set(board, get_board(boardon-2));
     get_captures(boardon-2);
