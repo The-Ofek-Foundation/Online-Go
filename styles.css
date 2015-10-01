@@ -5,25 +5,57 @@
   width: 50px;
   height: 50px;
 }
-
 #settings-panel {
   position: absolute;
   right: 0px;
   top: 0px;
   height: 100%;
 }
-
 #btn-new-game {
   display: block;
   margin: 20px auto;
   width: auto;
-  font-size: 40px; 
+  font-size: 40px;
   color: white;
   background-color: blue;
   border: none;
   border-radius: 10px;
 }
-
+.stone-count {
+  width: 100px;
+  margin: 50px;
+}
+.stone-count#black-stone {
+  background-image: url("https://upload.wikimedia.org/wikipedia/en/b/b6/Realistic_Go_Stone.svg");
+  background-size: 100px;
+  background-repeat: no-repeat;
+  color: white;
+  float: left;
+  font-weight: 600;
+}
+.stone-count#white-stone {
+  background-image: url("https://upload.wikimedia.org/wikipedia/en/thumb/2/20/Realistic_White_Go_Stone.svg/250px-Realistic_White_Go_Stone.svg.png");
+  background-size: 100px;
+  background-repeat: no-repeat;
+  color: black;
+  float: right;
+  font-weight: 600;
+}
+#stone-capture-layer {
+  width: 90%;
+  height: 100px;
+  margin: 50px;
+  line-height: 100px;
+  text-align: center;
+  font-size: 50px;
+}
+#captures-text {
+  position: absolute;
+  height: 100px;
+  width: 90%;
+  font-weight: bold;
+  margin-top: 50px;
+}
 #new-game-menu {
   position: absolute;
   visibility: visible;
@@ -35,16 +67,16 @@
   top: 7.5%;
   padding: 30px;
   color: white;
-  h1 {
-    margin-top: 5px;
-  }
-  -moz-box-shadow: 0 0 500px black;
-  -webkit-box-shadow: 0 0 500px black;
-  box-shadow: 0 0 500px black;
+  -moz-box-shadow: 0 0 50px black;
+  -webkit-box-shadow: 0 0 00px black;
+  box-shadow: 0 0 50px black;
   border-radius: 15px;
   opacity: 0;
 }
-
-html, button {
+#new-game-menu h1 {
+  margin-top: 5px;
+}
+html,
+button {
   font-family: 'Open Sans', sans-serif;
 }
