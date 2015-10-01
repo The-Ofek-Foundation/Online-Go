@@ -6,6 +6,7 @@ var wcaptures, bcaptures;
 var second, seconds;
 var i, a;
 var ss; // square size
+var max_turn;
 
 var goban = document.getElementById("board");
 var brush = goban.getContext("2d");
@@ -48,6 +49,8 @@ function save_board(index, goban) {
 function get_captures(index)	{
   bcaptures = captures[index][0];
   wcaptures = captures[index][1];
+  $('#black-stone').text(bcaptures);
+  $('#white-stone').text(wcaptures);
 }
 
 function get_seconds(index)	{
@@ -123,6 +126,7 @@ function new_game(length) {
   $('#black-stone').text(bcaptures);
   $('#white-stone').text(wcaptures);
   boardon++;
+  max_turn = boardon;
   ss = gowidth / size;
   draw_board();
 }
@@ -234,7 +238,10 @@ function can_place_here(x, y, output) {
 }
 
 $('#board').mousedown(function(e) {
-  if (e.which != 1) return;
+  if (e.which != 1) {
+    draw_board();
+    return;
+  }
   var x = get_coord(e.pageX - parseInt($(this).css('left'), 10));
   var y = get_coord(e.pageY - parseInt($(this).css('top'), 10));
     
@@ -258,6 +265,7 @@ $('#board').mousedown(function(e) {
   $('#black-stone').text(bcaptures);
   $('#white-stone').text(wcaptures);
   boardon++;
+  max_turn = boardon;
   blackturn = !blackturn;
   draw_board();
 });
@@ -270,7 +278,13 @@ $('#board').mousemove(function(e) {
     draw_board(x, y, blackturn ? 'B':'W');
 });
 
+var dont_submit = false;
+
 $('#form-new-game').submit(function() {
+  if (dont_submit) {
+    dont_submit = false;
+    return false;
+  }
   new_game(parseInt($('input[name="board-size"]').val(), 10));
   $('#new-game-menu').animate({opacity: 0}, "slow", function() {
     $(this).css('z-index', -1);
@@ -280,5 +294,44 @@ $('#form-new-game').submit(function() {
 
 $('#btn-new-game').click(function() {
   $('#new-game-menu').animate({opacity: 1}, "slow").css('z-index', 1);
+});
+
+$('#btn-new-game-cancel').click(function() {
+  dont_submit = true;
+  $('#new-game-menu').animate({opacity: 0}, "slow", function() {
+    $(this).css('z-index', -1);
+  });
+});
+
+$('#btn-undo').click(function() {
+  if (boardon < 2) {
+    alert("No moves to undo");
+    return;
+  }
+  else if (boardon == 2)
+    new_game(size);
+  else {
+    set(board, get_board(boardon-2));
+    get_captures(boardon-2);
+    get_seconds(boardon-2);
+    boardon--;
+    blackturn = !blackturn;
+  }
+  draw_board();
+});
+
+$('#btn-redo').click(function() {
+  if (boardon >= max_turn) {
+    alert("No moves to redo");
+    return;
+  }
+  else {
+    set(board, get_board(boardon));
+    get_captures(boardon);
+    get_seconds(boardon);
+    boardon++;
+    blackturn = !blackturn;
+  }
+  draw_board();
 });
   
