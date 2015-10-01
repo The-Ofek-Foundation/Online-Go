@@ -58,16 +58,16 @@ function get_board(index)	{
     return boards[index];
 }
 
-function draw_piece(x, y) {
-  switch (board[x][y])	{
-    case 'B': brush.fillStyle = "black"; break;
-    case 'W': brush.fillStyle = "white"; break;
+function draw_piece(x, y, char, opacity) {
+  switch (char)	{
+    case 'B': brush.fillStyle = "rgba(0, 0, 0, " + opacity + ")"; break;
+    case 'W': brush.fillStyle = "rgba(255, 255, 255, " + opacity + ")"; break;
     default: return;
   }
   brush.beginPath();
   brush.arc(x * ss + ss / 2, y * ss + ss / 2, ss * 0.4, 0, Math.PI * 2);
   brush.fill();
-  brush.strokeStyle = "black";
+  brush.strokeStyle = "rgba(0, 0, 0, " + opacity + ")";
   brush.stroke();
 }
 
@@ -75,7 +75,7 @@ function clear_canvas() {
   brush.clearRect(0, 0, gowidth, gowidth);
 }
 
-function draw_board() {
+function draw_board(x, y, char) {
   clear_canvas();
   
   brush.beginPath();
@@ -92,7 +92,10 @@ function draw_board() {
   
   for (i = 0; i < board.length; i++)
     for (a = 0; a < board[i].length; a++)
-        draw_piece(i, a);
+      draw_piece(i, a, board[i][a], 1);
+  
+  if (char)
+    draw_piece(x, y, char, 0.5);
 }
 
 function new_game(length) {
@@ -221,19 +224,21 @@ function get_coord(loc) {
   return parseInt(loc / ss, 10);
 }
 
-function can_place_here(x, y) {
+function can_place_here(x, y, output) {
   if (board[x][y] != ' ') {
-    alert("Illegal to place on stone!");
+    if (output)
+      alert("Illegal to place on stone!");
     return false;
   }
   return true;
 }
 
-$('#board').mousedown(function(e) {  
+$('#board').mousedown(function(e) {
+  if (e.which != 1) return;
   var x = get_coord(e.pageX - parseInt($(this).css('left'), 10));
   var y = get_coord(e.pageY - parseInt($(this).css('top'), 10));
     
-  if (can_place_here(x, y))
+  if (can_place_here(x, y, true))
     board[x][y] = blackturn ? 'B':'W';
   else return;
   
@@ -255,6 +260,14 @@ $('#board').mousedown(function(e) {
   boardon++;
   blackturn = !blackturn;
   draw_board();
+});
+
+$('#board').mousemove(function(e) {
+  var x = get_coord(e.pageX - parseInt($(this).css('left'), 10));
+  var y = get_coord(e.pageY - parseInt($(this).css('top'), 10));
+  
+  if (can_place_here(x, y, false))
+    draw_board(x, y, blackturn ? 'B':'W');
 });
 
 $('#form-new-game').submit(function() {
