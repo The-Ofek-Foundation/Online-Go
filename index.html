@@ -17,8 +17,9 @@
       <div id="captures-text">Number of Captures</div>
       <div class="stone-count" id="white-stone"></div>
     </div>
-    <button id="btn-redo">Redo</button>
     <button id="btn-undo">Undo</button>
+    <button id="btn-pass">Pass</button>
+    <button id="btn-redo">Redo</button>
   </div>
   
 <div id="new-game-menu">
@@ -26,6 +27,14 @@
   <form id="form-new-game" action="">
     Board Size (1 - 25):
     <input type="number" name="board-size" min="1" max="25" step="1" value="19" required>
+    <br />
+    Game Type:
+    <input list="game-types" name="game-types" value="Go">
+    <datalist id="game-types">
+      <option value="Go" selected></option>
+      <option value="Gomoku"></option>
+      <option value="Wu"></option>
+    </datalist>
     <br />
     <input type="submit" value="New Game">
     <br /><br />
