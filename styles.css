@@ -10,6 +10,7 @@
   right: 0px;
   top: 0px;
   height: 100%;
+  text-align: center;
 }
 #btn-new-game {
   display: block;
@@ -31,6 +32,16 @@
   font-size: 40px;
   margin: 30px;
   float: left;
+}
+#btn-pass {
+  display: inline-block;
+  color: white;
+  background-color: black;
+  border: none;
+  border-radius: 10px;
+  width: auto;
+  font-size: 40px;
+  margin: 30px;
 }
 #btn-redo {
   display: inline-block;
@@ -76,6 +87,7 @@
   height: 100px;
   width: 100%;
   font-weight: bold;
+  font-size: 30px;
 }
 #new-game-menu {
   position: absolute;
