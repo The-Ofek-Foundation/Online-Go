@@ -7,6 +7,8 @@ var second, seconds;
 var i, a;
 var ss; // square size
 var max_turn;
+var black_pass;
+var game_type = "Go";
 
 var goban = document.getElementById("board");
 var brush = goban.getContext("2d");
@@ -61,6 +63,15 @@ function get_board(index)	{
     return boards[index];
 }
 
+function set_turn(bturn) {
+  blackturn = bturn;
+  var selected_stone = bturn ? $('#black-stone'):$('#white-stone');
+  var other_stone = bturn ? $('#white-stone'):$('#black-stone');
+  
+  selected_stone.css('box-shadow', 'yellow 0px 0px 50px').css('background-color', '#FFFFA0');
+  other_stone.css('box-shadow', 'none').css('background-color', 'rgba(0,0,0,0)');
+}
+
 function draw_piece(x, y, char, opacity) {
   switch (char)	{
     case 'B': brush.fillStyle = "rgba(0, 0, 0, " + opacity + ")"; break;
@@ -103,7 +114,7 @@ function draw_board(x, y, char) {
 
 function new_game(length) {
   size = length;
-  blackturn = true;
+  set_turn(true);
   boardon = 0;
   boards = new Array(size * size * 2);
   captures = new Array(size * size * 2);
@@ -128,6 +139,7 @@ function new_game(length) {
   save_board(boardon, board);
   boardon++;
   max_turn = boardon;
+  black_pass = false;
   ss = gowidth / size;
   draw_board();
 }
@@ -214,7 +226,15 @@ function check_dead(turn, x, y)	{
   }
         
   while (check_dead_helper(dead, kill_char));
-    
+  
+  if (board[x][y] == kill_char)
+    for (i = 0; i < dead.length; i++)
+      if (dead[i].indexOf(-1) >= 0) {
+        if (confirm('Are you sure? This play is suicidal.'))
+          break;
+        else return false;
+      }
+  
   for (i = 0; i < dead.length; i++)
     for (a = 0; a < dead[i].length; a++)
       if (dead[i][a] == -1)	{
@@ -222,6 +242,7 @@ function check_dead(turn, x, y)	{
         if (turn) wcaptures++;
         else bcaptures++;
       }
+  return true;
 }
 
 
@@ -238,6 +259,75 @@ function can_place_here(x, y, output) {
   return true;
 }
 
+function check_gomoku_win(x, y) {
+  var countConsecutive = 0;
+  var color = 'null';
+  for (i = x - 4; i <= x + 4; i++) // Horizontal
+    if (i > 0 && i < board.length && countConsecutive < 5)
+      if (board[i][y] == color)
+        countConsecutive++;
+      else if (board[i][y] == 'B' || board[i][y] == 'W') {
+        color = board[i][y];
+        countConsecutive = 1;
+      }
+      else	color = 'null';
+    else if (countConsecutive == 5)
+      return true;
+  if (countConsecutive == 5)
+    return true;
+  
+  countConsecutive = 0;
+  color = 'null';
+  
+  for (a = y - 4; a <= y + 4; a++) // Vertical
+    if (a > 0 && a < board.length && countConsecutive < 5)
+      if (board[x][a] == color)
+        countConsecutive++;
+      else if (board[x][a] == 'B' || board[x][a] == 'W') {
+        color = board[x][a];
+        countConsecutive = 1;
+      }
+      else	color = 'null';
+    else if (countConsecutive == 5)
+      return true;
+  if (countConsecutive == 5)
+    return true;
+  
+  countConsecutive = 0;
+  color = 'null';
+  
+  for (i = x - 4, a = y - 4; i <= x + 4; i++, a++) // diagonal 1 topleft - bottomright
+    if (a > 0 && a < board.length && i > 0 && i < board[a].length && countConsecutive < 5)
+      if (board[i][a] == color)
+        countConsecutive++;
+      else if (board[i][a] == 'B' || board[i][a] == 'W') {
+        color = board[i][a];
+        countConsecutive = 1;
+      }
+      else	color = 'null';
+    else if (countConsecutive == 5)
+      return true;
+  if (countConsecutive == 5)
+    return true;
+  
+  countConsecutive = 0;
+  color = 'null';
+  
+  for (i = x - 4, a = y + 4; i <= x + 4; i++, a--) // diagonal 1 topright - bottomleft
+    if (a > 0 && a < board.length && i > 0 && i < board[a].length && countConsecutive < 5)
+      if (board[i][a] == color)
+        countConsecutive++;
+      else if (board[i][a] == 'B' || board[i][a] == 'W') {
+        color = board[i][a];
+        countConsecutive = 1;
+      }
+      else	color = 'null';
+    else if (countConsecutive == 5)
+      return true;
+  if (countConsecutive == 5)
+    return true;
+}
+
 $('#board').mousedown(function(e) {
   if (e.which != 1) {
     draw_board();
@@ -246,14 +336,19 @@ $('#board').mousedown(function(e) {
   var x = get_coord(e.pageX - parseInt($(this).css('left'), 10));
   var y = get_coord(e.pageY - parseInt($(this).css('top'), 10));
     
-  if (can_place_here(x, y, true))
+  if (can_place_here(x, y, false))
     board[x][y] = blackturn ? 'B':'W';
   else return;
   
-  check_dead(!blackturn, x, y);
-  check_dead(blackturn, x, y);
+  if (game_type != "Gomoku") {
+    check_dead(!blackturn, x, y);
+    if(!check_dead(blackturn, x, y)) {
+      board[x][y] = ' ';
+      return;
+    }
+  }
   
-  if (boardon > 3)
+  if (game_type != "Gomoku" && boardon > 3)
     if (equal(board, get_board(boardon-2))) {
       set(board, get_board(boardon-1));
       get_captures(boardon-1);
@@ -267,8 +362,12 @@ $('#board').mousedown(function(e) {
   $('#white-stone').text(wcaptures);
   boardon++;
   max_turn = boardon;
-  blackturn = !blackturn;
+  set_turn(!blackturn);
+  black_pass = false;
   draw_board();
+  
+  if (game_type != "Go" && check_gomoku_win(x, y))
+    alert(blackturn ? "White":"Black" + " won!");
 });
 
 $('#board').mousemove(function(e) {
@@ -287,6 +386,7 @@ $('#form-new-game').submit(function() {
     return false;
   }
   new_game(parseInt($('input[name="board-size"]').val(), 10));
+  game_type = $('input[name="game-types"]').val();
   $('#new-game-menu').animate({opacity: 0}, "slow", function() {
     $(this).css('z-index', -1);
   });
@@ -314,7 +414,7 @@ $('#btn-undo').click(function() {
     get_captures(boardon-2);
     get_seconds(boardon-2);
     boardon--;
-    blackturn = !blackturn;
+    set_turn(!blackturn);
   }
   draw_board();
 });
@@ -329,8 +429,17 @@ $('#btn-redo').click(function() {
     get_captures(boardon);
     get_seconds(boardon);
     boardon++;
-    blackturn = !blackturn;
+    set_turn(!blackturn);
   }
+  draw_board();
+});
+
+$('#btn-pass').click(function() {
+  if (blackturn)
+    black_pass = true;
+  else if (black_pass)
+    alert("Game over!");
+  set_turn(!blackturn);
   draw_board();
 });
   
