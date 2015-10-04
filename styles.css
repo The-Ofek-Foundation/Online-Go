@@ -12,9 +12,24 @@
   height: 100%;
   text-align: center;
 }
+.countdown {
+  display: inline-block;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  font-size: 40px;
+}
+#black-cntdwn {
+  float: left;
+  margin-left: 20px;
+}
+#white-cntdwn {
+  float: right;
+  margin-right: 20px;
+}
 #btn-new-game {
-  display: block;
-  margin: 20px auto;
+  display: inline-block;
+  margin-top: 20px;
+  margin-bottom: 20px;
   width: auto;
   font-size: 40px;
   color: white;
