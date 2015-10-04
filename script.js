@@ -9,9 +9,36 @@ var ss; // square size
 var max_turn;
 var black_pass;
 var game_type = "Go";
+var last_piece, last_pieces;
+var timer;
 
 var goban = document.getElementById("board");
 var brush = goban.getContext("2d");
+
+String.prototype.toMMSS = function () {
+    var sec_num = parseInt(this, 10); // don't forget the second param
+    var minutes = Math.floor(sec_num / 60);
+    var seconds = sec_num - (minutes * 60);
+
+    if (minutes < 10) {minutes = "0"+minutes;}
+    if (seconds < 10) {seconds = "0"+seconds;}
+    var time    = minutes+':'+seconds;
+    return time;
+};
+
+function update_second_display() {
+  $('#black-cntdwn').text(("" + second[0]).toMMSS());
+  $('#white-cntdwn').text(("" + second[1]).toMMSS());
+}
+
+function countdown() {
+  second[blackturn ? 0:1]--;
+  update_second_display();
+  if (second[blackturn ? 0:1] === 0) {
+    alert(blackturn ? "White":"Black" + " wins on time!");
+    clearInterval(timer);
+  }
+}
 
 function log_array(arr) {
   for (i = 0; i < arr.length; i++)
@@ -33,19 +60,22 @@ function set(goban, from)	{
 }
 
 function save_captures(index, b, w)	{
-  captures[index][0] = b;
-  captures[index][1] = w;
+  captures[index] = [b, w];
 }
+
 function save_seconds(index, times)	{
-  seconds[index] = times;
+  seconds[index] = JSON.parse(JSON.stringify(times));
+}
+
+function save_last_piece(index) {
+  last_pieces[index] = last_piece;
 }
 
 function save_board(index, goban) {
-  for (i = 0; i < goban.length; i++)
-    for (a = 0; a < goban[i].length; a++)
-      boards[index][i][a] = goban[i][a];
+  boards[index] = JSON.parse(JSON.stringify(goban));
   save_captures(index, bcaptures, wcaptures);
-  save_seconds(index, seconds);
+  save_seconds(index, second);
+  save_last_piece(index);
 }
 
 function get_captures(index)	{
@@ -59,8 +89,15 @@ function get_seconds(index)	{
   second = seconds[index];
 }
 
+function get_last_piece(index) {
+  last_piece = last_pieces[index];
+}
+
 function get_board(index)	{
-    return boards[index];
+  get_captures(index);
+  get_seconds(index);
+  get_last_piece(index);
+  return boards[index];
 }
 
 function set_turn(bturn) {
@@ -72,6 +109,22 @@ function set_turn(bturn) {
   other_stone.css('box-shadow', 'none').css('background-color', 'rgba(0,0,0,0)');
 }
 
+function draw_arc(x, y, radius) {
+  brush.arc(x * ss + ss / 2, y * ss + ss / 2, radius, 0, Math.PI * 2);
+}
+
+function draw_circle(x, y, opacity) {
+  switch(board[x][y]) {
+      case 'W': brush.strokeStyle = "rgba(0, 0, 0, " + opacity + ")"; break;
+    case 'B': brush.strokeStyle = "rgba(255, 255, 255, " + opacity + ")"; break;
+    default: return;
+  }
+  brush.beginPath();
+  brush.lineWidth = ss / 10;
+  draw_arc(x, y, ss * 0.22);
+  brush.stroke();
+}
+
 function draw_piece(x, y, char, opacity) {
   switch (char)	{
     case 'B': brush.fillStyle = "rgba(0, 0, 0, " + opacity + ")"; break;
@@ -79,10 +132,26 @@ function draw_piece(x, y, char, opacity) {
     default: return;
   }
   brush.beginPath();
-  brush.arc(x * ss + ss / 2, y * ss + ss / 2, ss * 0.4, 0, Math.PI * 2);
+  brush.lineWidth = ss / 25;
+  draw_arc(x, y, ss * 0.4);
   brush.fill();
   brush.strokeStyle = "rgba(0, 0, 0, " + opacity + ")";
   brush.stroke();
+}
+
+function draw_key_points() {
+  var quarter = Math.floor(Math.sqrt(size)) - 1;
+  var half = (size - 1) / 2;
+  brush.fillStyle = "black";
+  brush.beginPath(); draw_arc(half, half, ss * 0.17); brush.fill();
+  brush.beginPath(); draw_arc(quarter, quarter, ss * 0.17); brush.fill();
+  brush.beginPath(); draw_arc(half, quarter, ss * 0.17); brush.fill();
+  brush.beginPath(); draw_arc(quarter, half, ss * 0.17); brush.fill();
+  brush.beginPath(); draw_arc(size-quarter-1, size-quarter-1, ss * 0.17); brush.fill();
+  brush.beginPath(); draw_arc(size-quarter-1, quarter, ss * 0.17); brush.fill();
+  brush.beginPath(); draw_arc(quarter, size-quarter-1, ss * 0.17); brush.fill();
+  brush.beginPath(); draw_arc(size-quarter-1, half, ss * 0.17); brush.fill();
+  brush.beginPath(); draw_arc(half, size-quarter-1, ss * 0.17); brush.fill();
 }
 
 function clear_canvas() {
@@ -93,6 +162,7 @@ function draw_board(x, y, char) {
   clear_canvas();
   
   brush.beginPath();
+  brush.lineWidth = 1;
   for (i = 1; i <= board.length; i++) {
     brush.moveTo(i * ss - ss / 2, 0);
     brush.lineTo(i * ss - ss / 2, gowidth);
@@ -104,35 +174,74 @@ function draw_board(x, y, char) {
   brush.strokeStyle = "black";
   brush.stroke();
   
+  draw_key_points();
+  
   for (i = 0; i < board.length; i++)
     for (a = 0; a < board[i].length; a++)
       draw_piece(i, a, board[i][a], 1);
   
   if (char)
     draw_piece(x, y, char, 0.5);
+  
+  if (last_piece)
+    draw_circle(last_piece[0], last_piece[1], 1);
+  
+  update_second_display();
 }
 
-function new_game(length) {
+function new_game(length, handicap, starttime) {
   size = length;
-  set_turn(true);
   boardon = 0;
   boards = new Array(size * size * 2);
   captures = new Array(size * size * 2);
+  captures[0] = [0, 0];
   seconds = new Array(size * size * 2);
-  for (i = 0; i < seconds.length; i++)
-    seconds[i] = new Array(2);
-  for (i = 0; i < boards.length; i++) {
-    boards[i] = new Array(size);
-    captures[i] = new Array(2);
-    for (a = 0; a < boards[i].length; a++)
-      boards[i][a] = new Array(size);
-  }
+  second = [starttime, starttime];
+  seconds[0] = second;
+  last_pieces = new Array(size * size * 2);
+  last_pieces[0] = false;
+
   board = new Array(size);
   for (i = 0; i < board.length; i++) {
     board[i] = new Array(size);
     for (a = 0; a < board[i].length; a++)
       board[i][a] = ' ';
   }
+  if (handicap > 1) {
+    var quarter = Math.floor(Math.sqrt(size)) - 1;
+    var half = (size - 1) / 2;
+    set_turn(false);
+    switch (handicap) {
+      case 9:
+        board[half][half] = 'B';
+      case 8:
+        board[half][quarter] = 'B';
+      case 7:
+        board[half][size-quarter-1] = 'B';
+      case 6:
+        board[quarter][quarter] = 'B';
+        board[quarter][half] = 'B';
+        board[quarter][size-quarter-1] = 'B';
+        board[size-quarter-1][quarter] = 'B';
+        board[size-quarter-1][half] = 'B';
+        board[size-quarter-1][size-quarter-1] = 'B';
+        break;
+      case 5:
+        board[half][half] = 'B';
+      case 4:
+        board[size-quarter-1][size-quarter-1] = 'B';
+      case 3:
+        board[quarter][quarter] = 'B';
+      case 2:
+        board[size-quarter-1][quarter] = 'B';
+        board[quarter][size-quarter-1] = 'B';
+        break;
+      case 1:
+        board[half][half] = 'B';
+    }
+  }
+  else set_turn(true);
+  boards[0] = board;
   wcaptures = bcaptures = 0;
   $('#black-stone').text(bcaptures);
   $('#white-stone').text(wcaptures);
@@ -142,6 +251,7 @@ function new_game(length) {
   black_pass = false;
   ss = gowidth / size;
   draw_board();
+  timer = setInterval(function() { countdown(); }, 1000);
 }
 
 $(document).ready(function() {
@@ -161,7 +271,7 @@ $(document).ready(function() {
   goban.setAttribute('width', gowidth);
   goban.setAttribute('height', gowidth);
   
-  new_game(19);
+  new_game(19, 0, 300);
 });
 
 function check_dead_helper(dead, kill_char)	{
@@ -349,7 +459,7 @@ $('#board').mousedown(function(e) {
   }
   
   if (game_type != "Gomoku" && boardon > 3)
-    if (equal(board, get_board(boardon-2))) {
+    if (equal(board, boards[boardon-2])) {
       set(board, get_board(boardon-1));
       get_captures(boardon-1);
       get_seconds(boardon-1);
@@ -357,6 +467,7 @@ $('#board').mousedown(function(e) {
       return;
     }
   
+  last_piece = [x, y];
   save_board(boardon, board);
   $('#black-stone').text(bcaptures);
   $('#white-stone').text(wcaptures);
@@ -385,7 +496,7 @@ $('#form-new-game').submit(function() {
     dont_submit = false;
     return false;
   }
-  new_game(parseInt($('input[name="board-size"]').val(), 10));
+  new_game(parseInt($('input[name="board-size"]').val(), 10), parseInt($('input[name="handicap"]').val(), 10), 300);
   game_type = $('input[name="game-types"]').val();
   $('#new-game-menu').animate({opacity: 0}, "slow", function() {
     $(this).css('z-index', -1);
@@ -411,8 +522,6 @@ $('#btn-undo').click(function() {
   }
   else {
     set(board, get_board(boardon-2));
-    get_captures(boardon-2);
-    get_seconds(boardon-2);
     boardon--;
     set_turn(!blackturn);
   }
@@ -426,8 +535,6 @@ $('#btn-redo').click(function() {
   }
   else {
     set(board, get_board(boardon));
-    get_captures(boardon);
-    get_seconds(boardon);
     boardon++;
     set_turn(!blackturn);
   }
