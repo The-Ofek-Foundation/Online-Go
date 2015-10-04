@@ -35,7 +35,7 @@ function countdown() {
   second[blackturn ? 0:1]--;
   update_second_display();
   if (second[blackturn ? 0:1] === 0) {
-    alert(blackturn ? "White":"Black" + " wins on time!");
+    alert((blackturn ? "White":"Black") + " wins on time!");
     clearInterval(timer);
   }
 }
@@ -251,6 +251,7 @@ function new_game(length, handicap, starttime) {
   black_pass = false;
   ss = gowidth / size;
   draw_board();
+  clearInterval(timer);
   timer = setInterval(function() { countdown(); }, 1000);
 }
 
@@ -489,6 +490,15 @@ $('#board').mousemove(function(e) {
     draw_board(x, y, blackturn ? 'B':'W');
 });
 
+function convert_time(time_str) {
+  time_str += '';
+  var minutes = parseInt(time_str.substring(0, time_str.indexOf(':')), 10);
+  var seconds = parseInt(time_str.substring(time_str.indexOf(':') + 1), 10);
+  if (minutes > 59)
+    minutes = 59;
+  return minutes * 60 + seconds;
+}
+
 var dont_submit = false;
 
 $('#form-new-game').submit(function() {
@@ -496,7 +506,7 @@ $('#form-new-game').submit(function() {
     dont_submit = false;
     return false;
   }
-  new_game(parseInt($('input[name="board-size"]').val(), 10), parseInt($('input[name="handicap"]').val(), 10), 300);
+  new_game(parseInt($('input[name="board-size"]').val(), 10), parseInt($('input[name="handicap"]').val(), 10), convert_time($('input[name="time-control"]').val()));
   game_type = $('input[name="game-types"]').val();
   $('#new-game-menu').animate({opacity: 0}, "slow", function() {
     $(this).css('z-index', -1);
