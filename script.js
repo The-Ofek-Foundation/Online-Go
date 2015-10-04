@@ -479,7 +479,7 @@ $('#board').mousedown(function(e) {
   draw_board();
   
   if (game_type != "Go" && check_gomoku_win(x, y))
-    alert(blackturn ? "White":"Black" + " won!");
+    alert((blackturn ? "White":"Black") + " won!");
 });
 
 $('#board').mousemove(function(e) {
