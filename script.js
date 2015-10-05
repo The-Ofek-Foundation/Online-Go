@@ -11,6 +11,8 @@ var black_pass;
 var game_type = "Go";
 var last_piece, last_pieces;
 var timer;
+var gomoku_ai = false;
+var ai_color;
 
 var goban = document.getElementById("board");
 var brush = goban.getContext("2d");
@@ -189,6 +191,275 @@ function draw_board(x, y, char) {
   update_second_display();
 }
 
+function gomoku_shape_score(consecutive, open_ends, curr_turn) {
+  switch (consecutive) {
+    case 4:
+      switch (open_ends) {
+        case 0:
+          return 0;
+        case 1:
+          if (curr_turn)
+            return 1000000;
+          return 50;
+        case 2:
+          if (curr_turn)
+            return 1000000;
+          return 150;
+      }
+    case 3:
+      switch (open_ends) {
+        case 0:
+          return 0;
+        case 1:
+          if (curr_turn)
+            return 7;
+          return 5;
+        case 2:
+          if (curr_turn)
+            return 100;
+          return 20;
+      }
+    case 2:
+      switch (open_ends) {
+        case 0:
+          return 0;
+        case 1:
+          return 2;
+        case 2:
+          return 5;
+      }
+    case 1:
+      switch (open_ends) {
+        case 0:
+          return 0;
+        case 1:
+          return 0.5;
+        case 2:
+          return 1;
+      }
+    default:
+      return 10000000;
+  }
+}
+
+function analyze_gomoku_color(black, bturn) {
+  var score = 0;
+  var color = black ? 'B':'W';
+  var countConsecutive = 0;
+  var open_ends = 0;
+  var x, y;
+  
+  for (i = 0; i < board.length; i++) {
+    for (a = 0; a < board[i].length; a++) {
+      if (board[i][a] == color)
+        countConsecutive++;
+      else if (board[i][a] == ' ' && countConsecutive > 0) {
+        open_ends++;
+        score += gomoku_shape_score(countConsecutive, open_ends, bturn == black);
+        countConsecutive = 0;
+        open_ends = 1;
+      }
+      else if (board[i][a] == ' ')
+        open_ends = 1;
+      else if (countConsecutive > 0) {
+        score += gomoku_shape_score(countConsecutive, open_ends, bturn == black);
+        countConsecutive = 0;
+        open_ends = 0;
+      }
+      else open_ends = 0;
+    }
+    if (countConsecutive > 0)
+      score += gomoku_shape_score(countConsecutive, open_ends, bturn == black);
+    countConsecutive = 0;
+    open_ends = 0;
+  }
+  
+  for (a = 0; a < board[0].length; a++) {
+    for (i = 0; i < board.length; i++) {
+      if (board[i][a] == color)
+        countConsecutive++;
+      else if (board[i][a] == ' ' && countConsecutive > 0) {
+        open_ends++;
+        score += gomoku_shape_score(countConsecutive, open_ends, bturn == black);
+        countConsecutive = 0;
+        open_ends = 1;
+      }
+      else if (board[i][a] == ' ')
+        open_ends = 1;
+      else if (countConsecutive > 0) {
+        score += gomoku_shape_score(countConsecutive, open_ends, bturn == black);
+        countConsecutive = 0;
+        open_ends = 0;
+      }
+      else open_ends = 0;
+    }
+    if (countConsecutive > 0)
+      score += gomoku_shape_score(countConsecutive, open_ends, bturn == black);
+    countConsecutive = 0;
+    open_ends = 0;
+  }
+  
+  for (x = 0; x < board.length; x++) { // diagonal 1
+    for (i = x, a = 0; i < board.length && a < board[i].length; i++, a++) {
+      if (board[i][a] == color)
+        countConsecutive++;
+      else if (board[i][a] == ' ' && countConsecutive > 0) {
+        open_ends++;
+        score += gomoku_shape_score(countConsecutive, open_ends, bturn == black);
+        countConsecutive = 0;
+        open_ends = 1;
+      }
+      else if (board[i][a] == ' ')
+        open_ends = 1;
+      else if (countConsecutive > 0) {
+        score += gomoku_shape_score(countConsecutive, open_ends, bturn == black);
+        countConsecutive = 0;
+        open_ends = 0;
+      }
+      else open_ends = 0;
+    }
+    if (countConsecutive > 0)
+      score += gomoku_shape_score(countConsecutive, open_ends, bturn == black);
+    countConsecutive = 0;
+    open_ends = 0;
+  }
+
+  for (y = 1; y < board.length; y++) { // diagonal 1
+    for (i = 0, a = y; i < board.length && a < board[i].length; i++, a++) {
+      if (board[i][a] == color)
+        countConsecutive++;
+      else if (board[i][a] == ' ' && countConsecutive > 0) {
+        open_ends++;
+        score += gomoku_shape_score(countConsecutive, open_ends, bturn == black);
+        countConsecutive = 0;
+        open_ends = 1;
+      }
+      else if (board[i][a] == ' ')
+        open_ends = 1;
+      else if (countConsecutive > 0) {
+        score += gomoku_shape_score(countConsecutive, open_ends, bturn == black);
+        countConsecutive = 0;
+        open_ends = 0;
+      }
+      else open_ends = 0;
+    }
+    if (countConsecutive > 0)
+      score += gomoku_shape_score(countConsecutive, open_ends, bturn == black);
+    countConsecutive = 0;
+    open_ends = 0;
+  }
+  
+  for (x = 0; x < board.length; x++) { // diagonal 2
+    for (i = x, a = 0; i >= 0 && a < board[i].length; i--, a++) {
+      if (board[i][a] == color)
+        countConsecutive++;
+      else if (board[i][a] == ' ' && countConsecutive > 0) {
+        open_ends++;
+        score += gomoku_shape_score(countConsecutive, open_ends, bturn == black);
+        countConsecutive = 0;
+        open_ends = 1;
+      }
+      else if (board[i][a] == ' ')
+        open_ends = 1;
+      else if (countConsecutive > 0) {
+        score += gomoku_shape_score(countConsecutive, open_ends, bturn == black);
+        countConsecutive = 0;
+        open_ends = 0;
+      }
+      else open_ends = 0;
+    }
+    if (countConsecutive > 0)
+      score += gomoku_shape_score(countConsecutive, open_ends, bturn == black);
+    countConsecutive = 0;
+    open_ends = 0;
+  }
+
+  for (y = 1; y < board.length; y++) { // diagonal 2
+    for (i = board.length-1, a = y; i >= 0 && a < board[i].length; i--, a++) {
+      if (board[i][a] == color)
+        countConsecutive++;
+      else if (board[i][a] == ' ' && countConsecutive > 0) {
+        open_ends++;
+        score += gomoku_shape_score(countConsecutive, open_ends, bturn == black);
+        countConsecutive = 0;
+        open_ends = 1;
+      }
+      else if (board[i][a] == ' ')
+        open_ends = 1;
+      else if (countConsecutive > 0) {
+        score += gomoku_shape_score(countConsecutive, open_ends, bturn == black);
+        countConsecutive = 0;
+        open_ends = 0;
+      }
+      else open_ends = 0;
+    }
+    if (countConsecutive > 0)
+      score += gomoku_shape_score(countConsecutive, open_ends, bturn == black);
+    countConsecutive = 0;
+    open_ends = 0;
+  }
+  
+  return score;
+}
+
+function analyze_gomoku(bturn) {
+  return analyze_gomoku_color(true, bturn) - analyze_gomoku_color(false, bturn);
+}
+
+function adjacent(i_temp, a_temp) {
+  if (i_temp == (size - 1) / 2 && a_temp == i_temp)
+    return true;
+  
+  for (i = i_temp - 1; i <= i_temp + 1; i++)
+    for (a = a_temp - 1; a <= a_temp + 1; a++)
+      if (i >= 0 && a >= 0 && i < board.length && a < board[i].length)
+        if (board[i][a] != ' ')
+          return true;
+  
+  return false;
+}
+
+function best_gomoku_move(bturn) {
+  var x_best = 0, y_best = 0;
+  var best_score = bturn ? -999999999:999999999;
+  var analysis;
+  var color = bturn ? 'B':'W';
+  
+  for (var i_temp = 0; i_temp < board.length; i_temp++)
+    for (var a_temp = 0; a_temp < board[i_temp].length; a_temp++)
+      if (board[i_temp][a_temp] == ' ' && adjacent(i_temp, a_temp)) {
+        board[i_temp][a_temp] = color;
+        analysis = analyze_gomoku(!bturn);
+        board[i_temp][a_temp] = ' ';
+        if ((analysis > best_score && bturn) || (analysis < best_score && !bturn)) {
+          best_score = analysis;
+          x_best = i_temp;
+          y_best = a_temp;
+        }
+      }
+  return [x_best, y_best];
+}
+
+function play_ai_turn_gomoku() {
+  var best_move = best_gomoku_move(blackturn);
+  board[best_move[0]][best_move[1]] = blackturn ? 'B':'W';
+  last_piece = [best_move[0], best_move[1]];
+  save_board(boardon, board);
+  boardon++;
+  max_turn = boardon;
+  set_turn(!blackturn);
+  black_pass = false;
+  draw_board();
+  
+  $('#gomoku-eval').text('Gomoku Evaluation: ' + analyze_gomoku());
+  
+  if (check_gomoku_win(best_move[0], best_move[1])) {
+    alert((blackturn ? "White":"Black") + " won!");
+    return false;
+  }
+  return true;
+}
+
 function new_game(length, handicap, starttime) {
   size = length;
   boardon = 0;
@@ -253,6 +524,13 @@ function new_game(length, handicap, starttime) {
   draw_board();
   clearInterval(timer);
   timer = setInterval(function() { countdown(); }, 1000);
+  
+  if (game_type == 'Gomoku' && gomoku_ai) {
+    if (ai_color == 'Black')
+      play_ai_turn_gomoku();
+    else if (ai_color == 'Both')
+      while (play_ai_turn_gomoku());
+  }
 }
 
 $(document).ready(function() {
@@ -439,7 +717,7 @@ function check_gomoku_win(x, y) {
     return true;
 }
 
-$('#board').mousedown(function(e) {
+$('#board').mousedown(function(e) { // place a piece
   if (e.which != 1) {
     draw_board();
     return;
@@ -478,8 +756,12 @@ $('#board').mousedown(function(e) {
   black_pass = false;
   draw_board();
   
+  $('#gomoku-eval').text('Gomoku Evaluation: ' + analyze_gomoku());
+  
   if (game_type != "Go" && check_gomoku_win(x, y))
     alert((blackturn ? "White":"Black") + " won!");
+  else if (game_type == 'Gomoku' && gomoku_ai)
+    play_ai_turn_gomoku();
 });
 
 $('#board').mousemove(function(e) {
@@ -506,8 +788,13 @@ $('#form-new-game').submit(function() {
     dont_submit = false;
     return false;
   }
-  new_game(parseInt($('input[name="board-size"]').val(), 10), parseInt($('input[name="handicap"]').val(), 10), convert_time($('input[name="time-control"]').val()));
+  
+  gomoku_ai = $('input[name="gomoku-ai"]').prop('checked');
   game_type = $('input[name="game-types"]').val();
+  ai_color = $('input[name="ai-color"]').val();
+  
+  new_game(parseInt($('input[name="board-size"]').val(), 10), parseInt($('input[name="handicap"]').val(), 10), convert_time($('input[name="time-control"]').val()));
+  
   $('#new-game-menu').animate({opacity: 0}, "slow", function() {
     $(this).css('z-index', -1);
   });
@@ -534,6 +821,7 @@ $('#btn-undo').click(function() {
     set(board, get_board(boardon-2));
     boardon--;
     set_turn(!blackturn);
+    $('#gomoku-eval').text('Gomoku Evaluation: ' + analyze_gomoku());
   }
   draw_board();
 });
@@ -547,6 +835,7 @@ $('#btn-redo').click(function() {
     set(board, get_board(boardon));
     boardon++;
     set_turn(!blackturn);
+    $('#gomoku-eval').text('Gomoku Evaluation: ' + analyze_gomoku());
   }
   draw_board();
 });
