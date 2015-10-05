@@ -503,6 +503,10 @@ function play_ai_turn_gomoku() {
   return true;
 }
 
+function play_ai_both_gomoku() {
+  setTimeout(function(){ if(play_ai_turn_gomoku()) play_ai_both_gomoku(); }, 20);
+}
+
 function new_game(length, handicap, starttime) {
   size = length;
   boardon = 0;
@@ -572,7 +576,7 @@ function new_game(length, handicap, starttime) {
     if (ai_color == 'Black')
       play_ai_turn_gomoku();
     else if (ai_color == 'Both')
-      while (play_ai_turn_gomoku());
+      play_ai_both_gomoku();
   }
 }
 
