@@ -22,6 +22,9 @@
     <button id="btn-undo">Undo</button>
     <button id="btn-pass">Pass</button>
     <button id="btn-redo">Redo</button>
+    <div id="gomoku-eval">
+      Gomoku Evaluation:
+    </div>
   </div>
   
 <div id="new-game-menu">
@@ -43,6 +46,17 @@
     <br />
     Enter time control (mm:ss):
     <input id="time-control" name="time-control" type="text" value="5:00">
+    <br />
+    Gomoku Ai? 
+    <input type="checkbox" id="gomoku-ai" name="gomoku-ai">
+    <br />
+    AI Color:
+    <input list="ai-color" name="ai-color" value="Black">
+    <datalist id="ai-color">
+      <option value="Black"></option>
+      <option value="White"></option>
+      <option value="Both"></option>
+    </datalist>
     <br />
     <input type="submit" value="New Game">
     <br /><br />
