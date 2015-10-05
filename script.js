@@ -204,7 +204,7 @@ function gomoku_shape_score(consecutive, open_ends, curr_turn) {
         case 2:
           if (curr_turn)
             return 1000000;
-          return 150;
+          return 10000;
       }
     case 3:
       switch (open_ends) {
@@ -419,7 +419,7 @@ function adjacent(i_temp, a_temp) {
   return false;
 }
 
-function best_gomoku_move(bturn) {
+function best_gomoku_move_single(bturn) {
   var x_best = 0, y_best = 0;
   var best_score = bturn ? -999999999:999999999;
   var analysis;
@@ -432,6 +432,32 @@ function best_gomoku_move(bturn) {
         analysis = analyze_gomoku(!bturn);
         board[i_temp][a_temp] = ' ';
         if ((analysis > best_score && bturn) || (analysis < best_score && !bturn)) {
+          best_score = analysis;
+          x_best = i_temp;
+          y_best = a_temp;
+        }
+      }
+  return [x_best, y_best];
+}
+
+function best_gomoku_move(bturn) {
+  var x_best = 0, y_best = 0;
+  var best_score = bturn ? -999999999:999999999;
+  var analysis;
+  var color = bturn ? 'B':'W';
+  var black_response;
+  
+  for (var i_temp = 0; i_temp < board.length; i_temp++)
+    for (var a_temp = 0; a_temp < board[i_temp].length; a_temp++)
+      if (board[i_temp][a_temp] == ' ' && adjacent(i_temp, a_temp)) {
+        board[i_temp][a_temp] = color;
+        black_response = best_gomoku_move_single(!bturn);
+        board[black_response[0]][black_response[1]] = !bturn ? 'B':'W';
+        analysis = analyze_gomoku(bturn);
+        board[i_temp][a_temp] = ' ';
+        board[black_response[0]][black_response[1]] = ' ';
+        if ((analysis > best_score && bturn) || (analysis < best_score && !bturn)) {
+          console.log(analysis + " " + i_temp + " " + a_temp);
           best_score = analysis;
           x_best = i_temp;
           y_best = a_temp;
