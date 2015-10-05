@@ -800,7 +800,7 @@ $('#board').mousedown(function(e) { // place a piece
   if (game_type != "Go" && check_gomoku_win(x, y))
     alert((blackturn ? "White":"Black") + " won!");
   else if (game_type == 'Gomoku' && gomoku_ai)
-    play_ai_turn_gomoku();
+    setTimeout(function(){ play_ai_turn_gomoku(); }, 20);
 });
 
 $('#board').mousemove(function(e) {
