@@ -104,6 +104,12 @@
   font-weight: bold;
   font-size: 30px;
 }
+#gomoku-eval {
+  height: 100px;
+  width: 100%;
+  font-weight: bold;
+  font-size: 30px;
+}
 #new-game-menu {
   position: absolute;
   visibility: visible;
