@@ -13,6 +13,7 @@ var last_piece, last_pieces;
 var timer;
 var gomoku_ai = false;
 var ai_color;
+var ai_depth = 2;
 
 var goban = document.getElementById("board");
 var brush = goban.getContext("2d");
@@ -440,34 +441,46 @@ function best_gomoku_move_single(bturn) {
   return [x_best, y_best];
 }
 
-function best_gomoku_move(bturn) {
+function best_gomoku_move(bturn, depth) {
   var x_best = 0, y_best = 0;
   var best_score = bturn ? -999999999:999999999;
   var analysis;
   var color = bturn ? 'B':'W';
   var black_response;
+  var anal_turn = depth % 2 === 0 ? bturn:!bturn;
   
   for (var i_temp = 0; i_temp < board.length; i_temp++)
     for (var a_temp = 0; a_temp < board[i_temp].length; a_temp++)
       if (board[i_temp][a_temp] == ' ' && adjacent(i_temp, a_temp)) {
-        board[i_temp][a_temp] = color;
-        black_response = best_gomoku_move_single(!bturn);
-        board[black_response[0]][black_response[1]] = !bturn ? 'B':'W';
-        analysis = analyze_gomoku(bturn);
-        board[i_temp][a_temp] = ' ';
-        board[black_response[0]][black_response[1]] = ' ';
-        if ((analysis > best_score && bturn) || (analysis < best_score && !bturn)) {
-          console.log(analysis + " " + i_temp + " " + a_temp);
-          best_score = analysis;
-          x_best = i_temp;
-          y_best = a_temp;
+        if (depth == 1) {
+          board[i_temp][a_temp] = color;
+          analysis = analyze_gomoku(anal_turn);
+          board[i_temp][a_temp] = ' ';
+          if ((analysis > best_score && bturn) || (analysis < best_score && !bturn)) {
+            best_score = analysis;
+            x_best = i_temp;
+            y_best = a_temp;
+          }
+        }
+        else {
+          board[i_temp][a_temp] = color;
+          black_response = best_gomoku_move(!bturn, depth - 1);
+          board[black_response[0]][black_response[1]] = !bturn ? 'B':'W';
+          analysis = analyze_gomoku(bturn);
+          board[i_temp][a_temp] = ' ';
+          board[black_response[0]][black_response[1]] = ' ';
+          if ((analysis > best_score && bturn) || (analysis < best_score && !bturn)) {
+            best_score = analysis;
+            x_best = i_temp;
+            y_best = a_temp;
+          }
         }
       }
   return [x_best, y_best];
 }
 
 function play_ai_turn_gomoku() {
-  var best_move = best_gomoku_move(blackturn);
+  var best_move = best_gomoku_move(blackturn, ai_depth);
   board[best_move[0]][best_move[1]] = blackturn ? 'B':'W';
   last_piece = [best_move[0], best_move[1]];
   save_board(boardon, board);
@@ -818,6 +831,7 @@ $('#form-new-game').submit(function() {
   gomoku_ai = $('input[name="gomoku-ai"]').prop('checked');
   game_type = $('input[name="game-types"]').val();
   ai_color = $('input[name="ai-color"]').val();
+  ai_depth = $('input[name="ai-depth"]').val();
   
   new_game(parseInt($('input[name="board-size"]').val(), 10), parseInt($('input[name="handicap"]').val(), 10), convert_time($('input[name="time-control"]').val()));
   
