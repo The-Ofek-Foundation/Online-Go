@@ -14,6 +14,7 @@ var timer;
 var gomoku_ai = false;
 var ai_color;
 var ai_depth = 2;
+var influence_alright = false;
 
 var goban = document.getElementById("board");
 var brush = goban.getContext("2d");
@@ -192,6 +193,75 @@ function draw_board(x, y, char) {
   update_second_display();
 }
 
+function check_gomoku_win(x, y) {
+  var countConsecutive = 0;
+  var color = 'null';
+  for (i = x - 4; i <= x + 4; i++) // Horizontal
+    if (i > 0 && i < board.length && countConsecutive < 5)
+      if (board[i][y] == color)
+        countConsecutive++;
+      else if (board[i][y] == 'B' || board[i][y] == 'W') {
+        color = board[i][y];
+        countConsecutive = 1;
+      }
+      else	color = 'null';
+    else if (countConsecutive == 5)
+      return true;
+  if (countConsecutive == 5)
+    return true;
+  
+  countConsecutive = 0;
+  color = 'null';
+  
+  for (a = y - 4; a <= y + 4; a++) // Vertical
+    if (a > 0 && a < board.length && countConsecutive < 5)
+      if (board[x][a] == color)
+        countConsecutive++;
+      else if (board[x][a] == 'B' || board[x][a] == 'W') {
+        color = board[x][a];
+        countConsecutive = 1;
+      }
+      else	color = 'null';
+    else if (countConsecutive == 5)
+      return true;
+  if (countConsecutive == 5)
+    return true;
+  
+  countConsecutive = 0;
+  color = 'null';
+  
+  for (i = x - 4, a = y - 4; i <= x + 4; i++, a++) // diagonal 1 topleft - bottomright
+    if (a > 0 && a < board.length && i > 0 && i < board[a].length && countConsecutive < 5)
+      if (board[i][a] == color)
+        countConsecutive++;
+      else if (board[i][a] == 'B' || board[i][a] == 'W') {
+        color = board[i][a];
+        countConsecutive = 1;
+      }
+      else	color = 'null';
+    else if (countConsecutive == 5)
+      return true;
+  if (countConsecutive == 5)
+    return true;
+  
+  countConsecutive = 0;
+  color = 'null';
+  
+  for (i = x - 4, a = y + 4; i <= x + 4; i++, a--) // diagonal 1 topright - bottomleft
+    if (a > 0 && a < board.length && i > 0 && i < board[a].length && countConsecutive < 5)
+      if (board[i][a] == color)
+        countConsecutive++;
+      else if (board[i][a] == 'B' || board[i][a] == 'W') {
+        color = board[i][a];
+        countConsecutive = 1;
+      }
+      else	color = 'null';
+    else if (countConsecutive == 5)
+      return true;
+  if (countConsecutive == 5)
+    return true;
+}
+
 function gomoku_shape_score(consecutive, open_ends, curr_turn) {
   switch (consecutive) {
     case 4:
@@ -200,12 +270,12 @@ function gomoku_shape_score(consecutive, open_ends, curr_turn) {
           return 0;
         case 1:
           if (curr_turn)
-            return 1000000;
+            return 100000000;
           return 50;
         case 2:
           if (curr_turn)
-            return 1000000;
-          return 10000;
+            return 100000000;
+          return 50000;
       }
     case 3:
       switch (open_ends) {
@@ -217,8 +287,8 @@ function gomoku_shape_score(consecutive, open_ends, curr_turn) {
           return 5;
         case 2:
           if (curr_turn)
-            return 100;
-          return 20;
+            return 10000;
+          return 50;
       }
     case 2:
       switch (open_ends) {
@@ -411,8 +481,10 @@ function adjacent(i_temp, a_temp) {
   if (i_temp == (size - 1) / 2 && a_temp == i_temp)
     return true;
   
-  for (i = i_temp - 1; i <= i_temp + 1; i++)
-    for (a = a_temp - 1; a <= a_temp + 1; a++)
+  var d = influence_alright ? 2:1;
+  
+  for (i = i_temp - d; i <= i_temp + d; i++)
+    for (a = a_temp - d; a <= a_temp + d; a++)
       if (i >= 0 && a >= 0 && i < board.length && a < board[i].length)
         if (board[i][a] != ' ')
           return true;
@@ -441,46 +513,74 @@ function best_gomoku_move_single(bturn) {
   return [x_best, y_best];
 }
 
-function best_gomoku_move(bturn, depth) {
-  var x_best = 0, y_best = 0;
-  var best_score = bturn ? -10000000:10000000;
-  var analysis;
+function winning_move(bturn) {
   var color = bturn ? 'B':'W';
-  var black_response;
-  var anal_turn = depth % 2 === 0 ? bturn:!bturn;
   
   for (var i_temp = 0; i_temp < board.length; i_temp++)
     for (var a_temp = 0; a_temp < board[i_temp].length; a_temp++)
       if (board[i_temp][a_temp] == ' ' && adjacent(i_temp, a_temp)) {
-        if (depth == 1) {
-          board[i_temp][a_temp] = color;
-          analysis = analyze_gomoku(!bturn);
+        board[i_temp][a_temp] = color;
+        if (check_gomoku_win(i_temp, a_temp)) {
           board[i_temp][a_temp] = ' ';
-          if ((analysis > best_score && bturn) || (analysis < best_score && !bturn)) {
-            best_score = analysis;
-            x_best = i_temp;
-            y_best = a_temp;
-            if (Math.abs(analysis) > 10000000)
-              return [x_best, y_best];
-          }
+          return [i_temp, a_temp];
         }
-        else {
-          board[i_temp][a_temp] = color;
-          black_response = best_gomoku_move(!bturn, depth - 1);
-          board[black_response[0]][black_response[1]] = !bturn ? 'B':'W';
+        board[i_temp][a_temp] = ' ';
+      }
+  
+  return false;
+}
+
+function best_gomoku_move(bturn, depth) {
+  var color = bturn ? 'B':'W';
+  var x_best = 0, y_best = 0;
+  var best_score = bturn ? -10000000:10000000;
+  var analysis;
+  var black_response;
+  var anal_turn = depth % 2 === 0 ? bturn:!bturn;
+  
+  var win = winning_move(bturn);
+  if (win) {
+    board[win[0]][win[1]] = color;
+    analysis = analyze_gomoku(anal_turn);
+    board[win[0]][win[1]] = ' ';
+    return [win[0], win[1], analysis];
+  }
+  else win = winning_move(!bturn);
+  if (win) {
+    board[win[0]][win[1]] = color;
+    if (depth == 1) {
+      analysis = analyze_gomoku(anal_turn);
+      board[win[0]][win[1]] = ' ';
+      return [win[0], win[1], analysis];
+    }
+    else {
+      black_response = best_gomoku_move(!bturn, depth - 1);
+      analysis = black_response[2];
+      board[win[0]][win[1]] = ' ';
+      return [win[0], win[1], analysis];
+    }
+  }
+  
+  for (var i_temp = 0; i_temp < board.length; i_temp++)
+    for (var a_temp = 0; a_temp < board[i_temp].length; a_temp++)
+      if (board[i_temp][a_temp] == ' ' && adjacent(i_temp, a_temp)) {
+        board[i_temp][a_temp] = color;
+        if (depth == 1)
           analysis = analyze_gomoku(anal_turn);
-          board[i_temp][a_temp] = ' ';
-          board[black_response[0]][black_response[1]] = ' ';
-          if ((analysis > best_score && bturn) || (analysis < best_score && !bturn)) {
-            best_score = analysis;
-            x_best = i_temp;
-            y_best = a_temp;
-            if (Math.abs(analysis) > 10000000)
-              return [x_best, y_best];
-          }
+        else {
+          black_response = best_gomoku_move(!bturn, depth - 1);
+          analysis = black_response[2];
+        }
+        board[i_temp][a_temp] = ' ';
+        if ((analysis > best_score && bturn) || (analysis < best_score && !bturn)) {
+          best_score = analysis;
+          x_best = i_temp;
+          y_best = a_temp;
+          if ((analysis > 10000000 && bturn) || (analysis < -10000000 && !bturn))
+            return [x_best, y_best, analysis];
         }
       }
-  return [x_best, y_best];
+  return [x_best, y_best, best_score];
 }
 
 function play_ai_turn_gomoku() {
@@ -494,7 +594,7 @@ function play_ai_turn_gomoku() {
   black_pass = false;
   draw_board();
   
-  $('#gomoku-eval').text('Gomoku Evaluation: ' + analyze_gomoku());
+  $('#gomoku-eval').text('Gomoku Evaluation: ' + analyze_gomoku(blackturn));
   
   if (check_gomoku_win(best_move[0], best_move[1])) {
     alert((blackturn ? "White":"Black") + " won!");
@@ -695,75 +795,6 @@ function can_place_here(x, y, output) {
   return true;
 }
 
-function check_gomoku_win(x, y) {
-  var countConsecutive = 0;
-  var color = 'null';
-  for (i = x - 4; i <= x + 4; i++) // Horizontal
-    if (i > 0 && i < board.length && countConsecutive < 5)
-      if (board[i][y] == color)
-        countConsecutive++;
-      else if (board[i][y] == 'B' || board[i][y] == 'W') {
-        color = board[i][y];
-        countConsecutive = 1;
-      }
-      else	color = 'null';
-    else if (countConsecutive == 5)
-      return true;
-  if (countConsecutive == 5)
-    return true;
-  
-  countConsecutive = 0;
-  color = 'null';
-  
-  for (a = y - 4; a <= y + 4; a++) // Vertical
-    if (a > 0 && a < board.length && countConsecutive < 5)
-      if (board[x][a] == color)
-        countConsecutive++;
-      else if (board[x][a] == 'B' || board[x][a] == 'W') {
-        color = board[x][a];
-        countConsecutive = 1;
-      }
-      else	color = 'null';
-    else if (countConsecutive == 5)
-      return true;
-  if (countConsecutive == 5)
-    return true;
-  
-  countConsecutive = 0;
-  color = 'null';
-  
-  for (i = x - 4, a = y - 4; i <= x + 4; i++, a++) // diagonal 1 topleft - bottomright
-    if (a > 0 && a < board.length && i > 0 && i < board[a].length && countConsecutive < 5)
-      if (board[i][a] == color)
-        countConsecutive++;
-      else if (board[i][a] == 'B' || board[i][a] == 'W') {
-        color = board[i][a];
-        countConsecutive = 1;
-      }
-      else	color = 'null';
-    else if (countConsecutive == 5)
-      return true;
-  if (countConsecutive == 5)
-    return true;
-  
-  countConsecutive = 0;
-  color = 'null';
-  
-  for (i = x - 4, a = y + 4; i <= x + 4; i++, a--) // diagonal 1 topright - bottomleft
-    if (a > 0 && a < board.length && i > 0 && i < board[a].length && countConsecutive < 5)
-      if (board[i][a] == color)
-        countConsecutive++;
-      else if (board[i][a] == 'B' || board[i][a] == 'W') {
-        color = board[i][a];
-        countConsecutive = 1;
-      }
-      else	color = 'null';
-    else if (countConsecutive == 5)
-      return true;
-  if (countConsecutive == 5)
-    return true;
-}
-
 $('#board').mousedown(function(e) { // place a piece
   if (e.which != 1) {
     draw_board();
@@ -803,7 +834,7 @@ $('#board').mousedown(function(e) { // place a piece
   black_pass = false;
   draw_board();
   
-  $('#gomoku-eval').text('Gomoku Evaluation: ' + analyze_gomoku());
+  $('#gomoku-eval').text('Gomoku Evaluation: ' + analyze_gomoku(blackturn));
   
   if (game_type != "Go" && check_gomoku_win(x, y))
     alert((blackturn ? "White":"Black") + " won!");
@@ -869,7 +900,7 @@ $('#btn-undo').click(function() {
     set(board, get_board(boardon-2));
     boardon--;
     set_turn(!blackturn);
-    $('#gomoku-eval').text('Gomoku Evaluation: ' + analyze_gomoku());
+    $('#gomoku-eval').text('Gomoku Evaluation: ' + analyze_gomoku(blackturn));
   }
   draw_board();
 });
@@ -883,7 +914,7 @@ $('#btn-redo').click(function() {
     set(board, get_board(boardon));
     boardon++;
     set_turn(!blackturn);
-    $('#gomoku-eval').text('Gomoku Evaluation: ' + analyze_gomoku());
+    $('#gomoku-eval').text('Gomoku Evaluation: ' + analyze_gomoku(blackturn));
   }
   draw_board();
 });
