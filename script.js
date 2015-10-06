@@ -197,7 +197,7 @@ function check_gomoku_win(x, y) {
   var countConsecutive = 0;
   var color = 'null';
   for (i = x - 4; i <= x + 4; i++) // Horizontal
-    if (i > 0 && i < board.length && countConsecutive < 5)
+    if (i >= 0 && i < board.length && countConsecutive < 5)
       if (board[i][y] == color)
         countConsecutive++;
       else if (board[i][y] == 'B' || board[i][y] == 'W') {
@@ -214,7 +214,7 @@ function check_gomoku_win(x, y) {
   color = 'null';
   
   for (a = y - 4; a <= y + 4; a++) // Vertical
-    if (a > 0 && a < board.length && countConsecutive < 5)
+    if (a >= 0 && a < board.length && countConsecutive < 5)
       if (board[x][a] == color)
         countConsecutive++;
       else if (board[x][a] == 'B' || board[x][a] == 'W') {
@@ -231,7 +231,7 @@ function check_gomoku_win(x, y) {
   color = 'null';
   
   for (i = x - 4, a = y - 4; i <= x + 4; i++, a++) // diagonal 1 topleft - bottomright
-    if (a > 0 && a < board.length && i > 0 && i < board[a].length && countConsecutive < 5)
+    if (a >= 0 && a < board.length && i >= 0 && i < board[a].length && countConsecutive < 5)
       if (board[i][a] == color)
         countConsecutive++;
       else if (board[i][a] == 'B' || board[i][a] == 'W') {
@@ -248,7 +248,7 @@ function check_gomoku_win(x, y) {
   color = 'null';
   
   for (i = x - 4, a = y + 4; i <= x + 4; i++, a--) // diagonal 1 topright - bottomleft
-    if (a > 0 && a < board.length && i > 0 && i < board[a].length && countConsecutive < 5)
+    if (a >= 0 && a < board.length && i >= 0 && i < board[a].length && countConsecutive < 5)
       if (board[i][a] == color)
         countConsecutive++;
       else if (board[i][a] == 'B' || board[i][a] == 'W') {
