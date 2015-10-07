@@ -554,8 +554,8 @@ function sort_moves(bturn) {
         insert([analysis > analysis2 ? analysis:analysis2, i_temp, a_temp], sorted_moves);
       }
   
-//   if (sorted_moves[sorted_moves.length-1][0] > 50000000)
-//     return [[-10000000, 0, 0], sorted_moves[sorted_moves.length-1]];
+  if (sorted_moves[sorted_moves.length-1][0] > 50000000)
+    return [[-10000000, 0, 0], sorted_moves[sorted_moves.length-1]];
   return sorted_moves;
 }
 
