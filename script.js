@@ -556,7 +556,7 @@ function sort_moves(bturn) {
   
 //   if (sorted_moves[sorted_moves.length-1][0] > 50000000)
 //     return [[-10000000, 0, 0], sorted_moves[sorted_moves.length-1]];
-//   return sorted_moves;
+  return sorted_moves;
 }
 
 function winning_move(bturn) {
