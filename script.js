@@ -525,20 +525,20 @@ function sort_moves(bturn) {
   var analysis, analysis2;
   var sorted_moves = [[-10000000, 0, 0]];
   
-//   var win = winning_move(bturn);
-//   if (win) {
-//     board[win[0]][win[1]] = color;
-//     analysis = analyze_gomoku(!bturn);
-//     board[win[0]][win[1]] = ' ';
-//     return [[-10000000, 0, 0], [analysis, win[0], win[1]]];
-//   }
-//   else win = winning_move(!bturn);
-//   if (win) {
-//     board[win[0]][win[1]] = color;
-//     analysis = analyze_gomoku(!bturn);
-//     board[win[0]][win[1]] = ' ';
-//     return [[-10000000, 0, 0], [analysis, win[0], win[1]]];
-//   }
+  var win = winning_move(bturn);
+  if (win) {
+    board[win[0]][win[1]] = color;
+    analysis = analyze_gomoku(!bturn);
+    board[win[0]][win[1]] = ' ';
+    return [[-10000000, 0, 0], [analysis, win[0], win[1]]];
+  }
+  else win = winning_move(!bturn);
+  if (win) {
+    board[win[0]][win[1]] = color;
+    analysis = analyze_gomoku(!bturn);
+    board[win[0]][win[1]] = ' ';
+    return [[-10000000, 0, 0], [analysis, win[0], win[1]]];
+  }
   
   for (var i_temp = 0; i_temp < board.length; i_temp++)
     for (var a_temp = 0; a_temp < board[i_temp].length; a_temp++)
@@ -554,9 +554,9 @@ function sort_moves(bturn) {
         insert([analysis > analysis2 ? analysis:analysis2, i_temp, a_temp], sorted_moves);
       }
   
-  if (sorted_moves[sorted_moves.length-1][0] > 50000000)
-    return [[-10000000, 0, 0], sorted_moves[sorted_moves.length-1]];
-  return sorted_moves;
+//   if (sorted_moves[sorted_moves.length-1][0] > 50000000)
+//     return [[-10000000, 0, 0], sorted_moves[sorted_moves.length-1]];
+//   return sorted_moves;
 }
 
 function winning_move(bturn) {
