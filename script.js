@@ -323,9 +323,8 @@ function analyze_gomoku_color(black, bturn, startx, endx, starty, endy) {
   
   for (i = startx; i < endx; i++) {
     for (a = starty; a < endy; a++) {
-      if (board[i][a] == color) {
+      if (board[i][a] == color)
         countConsecutive++;
-      }
       else if (board[i][a] == ' ' && countConsecutive > 0) {
         open_ends++;
         score += gomoku_shape_score(countConsecutive, open_ends, bturn == black);
@@ -520,24 +519,32 @@ function locationOf(element, array, start, end) {
   }
 }
 
+// function threat_moves() {
+  
+  
+//   for (var i_temp = 0; i_temp < board.length; i_temp++)
+//     for (var a_temp = 0; a_temp < board[i_temp].length; a_temp++)
+//       if (board[i_temp][a_temp] == ' ' && adjacent(i_temp, a_temp)) {
+// }
+
 function sort_moves(bturn) {
   var color = bturn ? 'B':'W';
   var analysis, analysis2;
-  var sorted_moves = [[-10000000, 0, 0]];
+  var sorted_moves = [];
   
   var win = winning_move(bturn);
   if (win) {
     board[win[0]][win[1]] = color;
     analysis = analyze_gomoku(!bturn);
     board[win[0]][win[1]] = ' ';
-    return [[-10000000, 0, 0], [analysis, win[0], win[1]]];
+    return [[analysis, win[0], win[1]]];
   }
   else win = winning_move(!bturn);
   if (win) {
     board[win[0]][win[1]] = color;
     analysis = analyze_gomoku(!bturn);
     board[win[0]][win[1]] = ' ';
-    return [[-10000000, 0, 0], [analysis, win[0], win[1]]];
+    return [[analysis, win[0], win[1]]];
   }
   
   for (var i_temp = 0; i_temp < board.length; i_temp++)
@@ -555,7 +562,7 @@ function sort_moves(bturn) {
       }
   
   if (sorted_moves[sorted_moves.length-1][0] > 50000000)
-    return [[-10000000, 0, 0], sorted_moves[sorted_moves.length-1]];
+    return [sorted_moves[sorted_moves.length-1]];
   return sorted_moves;
 }
 
@@ -586,7 +593,7 @@ function best_gomoku_move(bturn, depth) {
   
   var sorted_moves = sort_moves(bturn);
   
-  for (var i_temp = sorted_moves.length-1; i_temp > sorted_moves.length - ai_move_check - 1 && i_temp > 0; i_temp--) {
+  for (var i_temp = sorted_moves.length-1; i_temp > sorted_moves.length - ai_move_check - 1 && i_temp >= 0; i_temp--) {
     board[sorted_moves[i_temp][1]][sorted_moves[i_temp][2]] = color;
     if (depth == 1)
       analysis = analyze_gomoku(anal_turn);
