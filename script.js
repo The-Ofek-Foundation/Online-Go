@@ -1203,8 +1203,8 @@ function newGame(length, handicap, starttime) {
 
 function pageReady() {
 
-	docwidth = $("#content-wrapper").outerWidth(true);
-	docheight = $("#content-wrapper").outerHeight(true);
+	docwidth = getElemWidth(document.getElementById('content-wrapper'));
+	docheight = getElemHeight(document.getElementById('content-wrapper'));
 
 	if (docwidth * 0.8 > docheight) {
 		gowidth = docheight;
@@ -1227,8 +1227,8 @@ $(window).resize(function(event) {
 	$("#content-wrapper").outerWidth($(window).outerWidth(true));
 	$("#content-wrapper").outerHeight($(window).outerHeight(true) - $("#content-wrapper").position().top);
 
-	docwidth = $("#content-wrapper").outerWidth(true);
-	docheight = $("#content-wrapper").outerHeight(true);
+	docwidth = getElemWidth(document.getElementById('content-wrapper'));
+	docheight = getElemHeight(document.getElementById('content-wrapper'));
 
 	if (docwidth * 0.8 > docheight) {
 		gowidth = docheight;
