@@ -21,7 +21,7 @@ var globalRoot;
 var anti = false;
 var boardTop, boardLeft;
 
-var goban = document.getElementById("board");
+var goban = getElemId("board");
 var brush = goban.getContext("2d");
 
 String.prototype.toMMSS = function () {
@@ -1203,8 +1203,8 @@ function newGame(length, handicap, starttime) {
 
 function pageReady() {
 
-	docwidth = getElemWidth(document.getElementById('content-wrapper'));
-	docheight = getElemHeight(document.getElementById('content-wrapper'));
+	docwidth = getElemWidth(getElemId('content-wrapper'));
+	docheight = getElemHeight(getElemId('content-wrapper'));
 
 	if (docwidth * 0.8 > docheight) {
 		gowidth = docheight;
@@ -1223,12 +1223,9 @@ function pageReady() {
 	newGame(19, 0, 300);
 };
 
-$(window).resize(function(event) {
-	$("#content-wrapper").outerWidth($(window).outerWidth(true));
-	$("#content-wrapper").outerHeight($(window).outerHeight(true) - $("#content-wrapper").position().top);
-
-	docwidth = getElemWidth(document.getElementById('content-wrapper'));
-	docheight = getElemHeight(document.getElementById('content-wrapper'));
+function onResize() {
+	docwidth = getElemWidth(getElemId('content-wrapper'));
+	docheight = getElemHeight(getElemId('content-wrapper'));
 
 	if (docwidth * 0.8 > docheight) {
 		gowidth = docheight;
@@ -1247,7 +1244,7 @@ $(window).resize(function(event) {
 	ss = gowidth / size;
 
 	drawBoard();
-});
+}
 
 function checkDeadHelper(dead, killChar)	{
 	var changed = false;
