@@ -1203,8 +1203,8 @@ function newGame(length, handicap, starttime) {
 
 function pageReady() {
 
-	docwidth = getElemWidth(getElemId('content-wrapper'));
-	docheight = getElemHeight(getElemId('content-wrapper'));
+	docwidth = getElemWidth(contentWrapper);
+	docheight = getElemHeight(contentWrapper);
 
 	if (docwidth * 0.8 > docheight) {
 		gowidth = docheight;
@@ -1224,8 +1224,8 @@ function pageReady() {
 };
 
 function onResize() {
-	docwidth = getElemWidth(getElemId('content-wrapper'));
-	docheight = getElemHeight(getElemId('content-wrapper'));
+	docwidth = getElemWidth(contentWrapper);
+	docheight = getElemHeight(contentWrapper);
 
 	if (docwidth * 0.8 > docheight) {
 		gowidth = docheight;
